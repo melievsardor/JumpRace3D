@@ -16,10 +16,13 @@ public class LevelController : MonoBehaviour
     [SerializeField]
     private float yOffset = 3f;
 
+    private Player player;
+
     private const float PI = 3.14159f;
 
     private void Awake()
     {
+        player = FindObjectOfType<Player>();
         CreateTargets();
     }
 
@@ -53,6 +56,9 @@ public class LevelController : MonoBehaviour
 
             instance.transform.SetParent(container.transform);
         }
+
+        player.transform.position = new Vector3(targetPosition.x, targetPosition.y, targetPosition.z);
+        player.transform.eulerAngles = new Vector3(0f, 135f, 0f);
 
         container.AddComponent<ContainerComponent>();
     }
