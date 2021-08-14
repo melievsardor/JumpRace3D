@@ -9,33 +9,28 @@ public class Player : MonoBehaviour
     private float jumpDelta = 2f;
 
     [SerializeField]
-    private float jumpSpeed = 10f;
+    private float jumpForce = 10f;
 
     [SerializeField]
     private float forwardSpeed = 2f;
 
+    [SerializeField]
+    private float lookAtSpeed = 1f;
+
+    private Rigidbody rigidbody;
+
     private Animator animator;
 
-    private Vector3 jumpEnd;
-
     private float posX;
-    private bool isForward;
 
+    private bool isForward;
     private bool isJump;
 
     private void Start()
     {
+        rigidbody = GetComponent<Rigidbody>();
+
         animator = GetComponent<Animator>();
-        //  transform.DOMoveY(transform.position.y + jumpDelta, jumpSpeed).SetEase(Ease.OutSine);
-
-        var jump = new Vector3(transform.position.x, transform.position.y + jumpDelta, transform.position.z);
-
-        transform.DOJump(jump, jumpDelta, 0, jumpSpeed).OnComplete(() =>
-        {
-
-            this.animator.SetTrigger("floating");
-
-        });
     }
 
 
@@ -46,13 +41,11 @@ public class Player : MonoBehaviour
             isForward = true;
 
             posX = Input.mousePosition.x;
-            Debug.Log("first pos x = " + posX);
         }
         else if(Input.GetMouseButton(0))
         {
             float deltaX = posX - Input.mousePosition.x;
 
-            Debug.Log("delta pos x = " + deltaX);
             if (isForward)
             {
                 transform.Translate(Vector3.forward * Time.deltaTime * forwardSpeed);
@@ -63,6 +56,8 @@ public class Player : MonoBehaviour
         {
             isForward = false;
         }
+
+        transform.eulerAngles = new Vector3(0f, transform.eulerAngles.y, 0f);
     }
 
     private void OnCollisionEnter(Collision collision)
@@ -71,22 +66,45 @@ public class Player : MonoBehaviour
         {
             RestartGame();
         }
-        else
+        else if(collision.gameObject.tag == "target")
         {
-            animator.SetTrigger("jump");
-            jumpEnd = new Vector3(transform.position.x, transform.position.y + jumpDelta, transform.position.z);
 
-            transform.DOJump(jumpEnd, jumpDelta, 0, jumpSpeed).SetEase(Ease.OutSine).OnComplete(() =>
+            var neighbor = collision.transform.parent.GetComponent<Target>().Neighbor;
+
+            if(neighbor != null)
             {
+                StartCoroutine(LookAt(neighbor.transform));
+            }
+            
 
-                this.animator.SetTrigger("floating");
-
-            });
-
+            rigidbody.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
+            animator.SetTrigger("jump");
         }
         
     }
 
+    private IEnumerator LookAt(Transform target)
+    {
+
+        var temp = target.position - transform.position;
+        Quaternion lookRotation = Quaternion.LookRotation(temp);
+
+        float time = 0;
+
+        while(time < 1)
+        {
+            transform.rotation = Quaternion.Slerp(transform.rotation, lookRotation, time);
+            transform.eulerAngles = new Vector3(0f, transform.eulerAngles.y, 0f);
+            time += Time.deltaTime * lookAtSpeed;
+
+            yield return null;
+        }
+    }
+
+    private void OnJumpEnd()
+    {
+        animator.SetTrigger("jumpingDown");
+    }
 
     private void RestartGame()
     {

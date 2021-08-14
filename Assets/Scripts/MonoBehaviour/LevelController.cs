@@ -5,7 +5,7 @@ using UnityEngine;
 public class LevelController : MonoBehaviour
 {
     [SerializeField]
-    private GameObject targetPrefab;
+    private Target targetPrefab;
 
     [SerializeField]
     private int targetCount = 15;
@@ -17,6 +17,8 @@ public class LevelController : MonoBehaviour
     private float yOffset = 3f;
 
     private Player player;
+
+    private Target target;
 
     private const float PI = 3.14159f;
 
@@ -35,10 +37,17 @@ public class LevelController : MonoBehaviour
         container.transform.position = Vector3.zero;
 
         int random = Random.Range(3, 15);
+        var temp = new Target();
+        int k = -1;
 
         for (int i = 0; i < targetCount; i++)
         {
-            GameObject instance = Instantiate(targetPrefab);
+            if(target != null)
+            {
+                temp = target;
+            }
+
+            target = Instantiate(targetPrefab);
 
             float angle = i * (2 * PI / 10);
 
@@ -52,13 +61,23 @@ public class LevelController : MonoBehaviour
 
             targetPosition = new Vector3(targetPosition.x + x, targetPosition.y + yOffset, targetPosition.z + z);
 
-            instance.transform.position = targetPosition;
+            target.transform.position = targetPosition;
 
-            instance.transform.SetParent(container.transform);
+            target.transform.SetParent(container.transform);
+
+            if(i == 0)
+            {
+                target.Neighbor = GameObject.FindGameObjectWithTag("Finish").GetComponent<Target>();
+            }
+            else
+            {
+                target.Neighbor = temp;
+            }
+            
         }
 
-        player.transform.position = new Vector3(targetPosition.x, targetPosition.y, targetPosition.z);
-        player.transform.eulerAngles = new Vector3(0f, 135f, 0f);
+        player.transform.position = new Vector3(targetPosition.x, targetPosition.y + 1f, targetPosition.z);
+      //  player.transform.eulerAngles = new Vector3(0f, 135f, 0f);
 
         container.AddComponent<ContainerComponent>();
     }
