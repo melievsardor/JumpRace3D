@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using DG.Tweening;
 
-public class PlayerController : MonoBehaviour
+public class PlayerController : MonoBehaviour, IGameState
 {
     [SerializeField]
     protected float jumpDelta = 2f;
@@ -20,15 +20,29 @@ public class PlayerController : MonoBehaviour
 
     protected float jumpForceHeight;
 
+    protected bool isPlay;
+    protected bool isFinish;
 
-    private float lookAtSpeed = 1f;
+    [SerializeField]
+    private string playerName = "You";
+    public string PlayerName { get { return playerName; } }
 
+    protected float lookAtSpeed = 1f;
 
+    private int index;
+    public int Index { get { return index; } set { index = value; } }
 
+    protected Target target;
 
+    protected bool isPlayer;
+    public bool IsPlayer { get { return isPlayer; } }
+
+    protected bool isLookAt = true;
 
     protected virtual void Start()
     {
+        GameManager.Instance.AddState(this);
+
         rigidbody = GetComponent<Rigidbody>();
 
         animator = GetComponent<Animator>();
@@ -36,10 +50,9 @@ public class PlayerController : MonoBehaviour
         jumpForceHeight = transform.position.y;
     }
 
-
-
     private void OnCollisionEnter(Collision collision)
     {
+        
         CollisionEnter(collision);
     }
 
@@ -54,7 +67,7 @@ public class PlayerController : MonoBehaviour
 
     private void JumpOnTarget(Collision collision)
     {
-        Target target = collision.transform.parent.GetComponent<Target>();
+        target = collision.transform.parent.GetComponent<Target>();
 
         if (target != null)
         {
@@ -67,19 +80,18 @@ public class PlayerController : MonoBehaviour
             }
             else
             {
+                index = target.Index;
+
                 rigidbody.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
             }
 
             animator.SetTrigger("jump");
 
-            if (neighbor != null)
-            {
-                StartCoroutine(LookAt(neighbor.transform));
-            }
+            isLookAt = true;
         }
     }
 
-    private IEnumerator LookAt(Transform target)
+    protected IEnumerator LookAt(Transform target)
     {
 
         var temp = target.position - transform.position;
@@ -100,13 +112,14 @@ public class PlayerController : MonoBehaviour
 
     protected virtual void JumpFinish()
     {
+        animator.SetTrigger("jumpingDown");
 
+        GameManager.Instance.SetLeadrboard();
     }
 
 
     public void OnJumpEnd()
     {
-        animator.SetTrigger("jumpingDown");
         JumpFinish();
     }
 
@@ -115,11 +128,25 @@ public class PlayerController : MonoBehaviour
 
     }
 
-   
-
-    protected void RestartGame()
+    public void Play()
     {
-        UnityEngine.SceneManagement.SceneManager.LoadScene("game");
+        isPlay = true;
     }
 
+    public void Failed()
+    {
+        isFinish = true;
+    }
+
+    public void Finish()
+    {
+        isFinish = true;
+    }
+
+    public void Leadrboard()
+    {
+       
+    }
+
+    
 }

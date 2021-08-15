@@ -4,25 +4,27 @@ using UnityEngine;
 
 public class Enemy : PlayerController
 {
-    private Target target;
-
     private int jumpCount;
 
     protected override void Start()
     {
         base.Start();
 
-
+        GameManager.Instance.AddPlayer(this);
     }
 
     protected override void CollisionEnter(Collision collision)
     {
         base.CollisionEnter(collision);
 
-
         if (collision.gameObject.tag == "target")
         {
             target = collision.transform.parent.GetComponent<Target>().Neighbor;
+
+            if (target != null)
+            {
+                StartCoroutine(LookAt(target.transform));
+            }
         }
 
     }
@@ -31,9 +33,12 @@ public class Enemy : PlayerController
     {
         base.JumpFinish();
 
+        if (!isPlay || isFinish)
+            return;
+
         jumpCount++;
 
-        if(jumpCount == 2)
+        if(jumpCount >= Random.Range(2, 5))
         {
             StartCoroutine(MoveNextTarget(target.transform.position));
         }
@@ -48,7 +53,9 @@ public class Enemy : PlayerController
 
         rigidbody.useGravity = false;
 
-        while(time < 1)
+        jumpCount = 0;
+
+        while (time < 1)
         {
             time += Time.deltaTime;
 
@@ -60,8 +67,6 @@ public class Enemy : PlayerController
 
             yield return null;
         }
-
-        jumpCount = 0;
 
         rigidbody.useGravity = true;
     }

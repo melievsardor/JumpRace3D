@@ -16,4 +16,17 @@ public class Target : MonoBehaviour
 
     private Target neighbor;
     public Target Neighbor { get { return neighbor; } set { neighbor = value; } }
+
+    private int index;
+    public int Index { get { return index; } set { index = value; } }
+
+
+    public void Init(Target neighbor, int index)
+    {
+        this.neighbor = neighbor;
+        this.index = index;
+    }
+
+
+
 }

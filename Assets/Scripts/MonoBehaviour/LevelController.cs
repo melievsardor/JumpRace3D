@@ -10,7 +10,6 @@ public class LevelController : MonoBehaviour
     [SerializeField]
     private Target onetimeTargetPrefab;
 
-    [SerializeField]
     private int targetCount = 15;
 
     [SerializeField]
@@ -20,7 +19,7 @@ public class LevelController : MonoBehaviour
     private float yOffset = 3f;
 
     [SerializeField]
-    private Enemy enemyPrefab;
+    private List<Enemy> enemyPrefab;
 
     private List<Target> targets = new List<Target>();
 
@@ -30,9 +29,12 @@ public class LevelController : MonoBehaviour
 
     private const float PI = 3.14159f;
 
-    private void Awake()
+    public void Init()
     {
         player = FindObjectOfType<Player>();
+
+        targetCount = GameManager.Instance.GetGameStates.LevelItemCount;
+
         CreateTargets();
 
         CreateOnWaterTarget();
@@ -99,8 +101,8 @@ public class LevelController : MonoBehaviour
             float z = Mathf.Sin(angle) * PositionRadius;
 
            
-            if (i != 0 && i % random != 0)
-                z = 5f;
+            //if (i != 0 && i % random != 0)
+            //    z = 5f;
 
             targetPosition = new Vector3(targetPosition.x + x, targetPosition.y + yOffset, targetPosition.z + z);
 
@@ -110,23 +112,35 @@ public class LevelController : MonoBehaviour
 
             if(i == 0)
             {
-                target.Neighbor = GameObject.FindGameObjectWithTag("Finish").GetComponent<Target>();
+                target.Init(GameObject.FindGameObjectWithTag("Finish").GetComponent<Target>(), 0);
             }
             else
             {
-                target.Neighbor = temp;
+                target.Init(temp, i);
             }
             
         }
 
         player.transform.position = new Vector3(targetPosition.x, targetPosition.y + 1f, targetPosition.z);
 
-        Enemy enemy = Instantiate(enemyPrefab);
-
-        Vector3 pos = targets[targets.Count - 2].transform.position;
-        enemy.transform.position = new Vector3(pos.x, pos.y + 1, pos.z);
+        CreateEnemy();
 
         container.AddComponent<ContainerComponent>();
+    }
+
+    private void CreateEnemy()
+    {
+        int k = 0;
+        for(int i = targets.Count - 2; i >targets.Count - 2 - 4; i--)
+        {
+            Enemy enemy = Instantiate(enemyPrefab[k]);
+
+            Vector3 pos = targets[i].transform.position;
+            enemy.transform.position = new Vector3(pos.x, pos.y + 1, pos.z);
+
+            k++;
+        }
+        
     }
 
 }
