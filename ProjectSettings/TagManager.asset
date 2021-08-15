@@ -6,7 +6,6 @@ TagManager:
   tags:
   - water
   - target
-  - finish
   layers:
   - Default
   - TransparentFX

@@ -8,6 +8,9 @@ public class LevelController : MonoBehaviour
     private Target targetPrefab;
 
     [SerializeField]
+    private Target onetimeTargetPrefab;
+
+    [SerializeField]
     private int targetCount = 15;
 
     [SerializeField]
@@ -15,6 +18,11 @@ public class LevelController : MonoBehaviour
 
     [SerializeField]
     private float yOffset = 3f;
+
+    [SerializeField]
+    private Enemy enemyPrefab;
+
+    private List<Target> targets = new List<Target>();
 
     private Player player;
 
@@ -26,6 +34,40 @@ public class LevelController : MonoBehaviour
     {
         player = FindObjectOfType<Player>();
         CreateTargets();
+
+        CreateOnWaterTarget();
+    }
+
+    
+    private void CreateOnWaterTarget()
+    {
+
+        float xoffset = 0;
+        float zOffset = 1;
+
+        for(int i = 0; i < 40; i++)
+        {
+            Target rightInstance = Instantiate(onetimeTargetPrefab);
+            Target leftInstance = Instantiate(onetimeTargetPrefab);
+
+            xoffset++;
+
+            float x = xoffset * 5f;
+            float z = zOffset * 5f;
+
+            if (i % 3 == 0)
+            {
+                zOffset++;
+                xoffset = 0;
+            }
+               
+
+            rightInstance.transform.position = new Vector3(x, 1f, z);
+            leftInstance.transform.position = new Vector3(-x + 5f, 1f, z);
+
+            rightInstance.transform.parent = transform;
+            leftInstance.transform.parent = transform;
+        }
     }
 
     private void CreateTargets()
@@ -48,6 +90,7 @@ public class LevelController : MonoBehaviour
             }
 
             target = Instantiate(targetPrefab);
+            targets.Add(target);
 
             float angle = i * (2 * PI / 10);
 
@@ -77,7 +120,11 @@ public class LevelController : MonoBehaviour
         }
 
         player.transform.position = new Vector3(targetPosition.x, targetPosition.y + 1f, targetPosition.z);
-      //  player.transform.eulerAngles = new Vector3(0f, 135f, 0f);
+
+        Enemy enemy = Instantiate(enemyPrefab);
+
+        Vector3 pos = targets[targets.Count - 2].transform.position;
+        enemy.transform.position = new Vector3(pos.x, pos.y + 1, pos.z);
 
         container.AddComponent<ContainerComponent>();
     }
