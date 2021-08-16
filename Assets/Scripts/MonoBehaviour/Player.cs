@@ -9,11 +9,20 @@ public class Player : PlayerController
 
     private Vector3 targetRotate;
 
+    private Vector3 currentVelocity;
+    private Vector3 heightVelocity;
+    private Vector3 currPosition;
+        
+    private Vector3 heightTargetPosition;
+    private const float jumpForceHeight = 33;
+
     private float posX;
 
     private float time = 0;
+    private float heigtTime = 0;
 
     private bool isForward;
+    private bool isJumpHeight;
 
     protected override void Start()
     {
@@ -45,6 +54,7 @@ public class Player : PlayerController
         if(Input.GetMouseButtonDown(0))
         {
             isForward = true;
+            isLookAt = false;
 
             posX = Camera.main.ScreenToViewportPoint(Input.mousePosition).x;
         }
@@ -56,10 +66,11 @@ public class Player : PlayerController
                 float posDelta = posX - Camera.main.ScreenToViewportPoint(Input.mousePosition).x;
 
                 transform.Translate(Vector3.forward * Time.deltaTime * forwardSpeed);
-                Vector3 direction = new Vector3(0f, -posDelta, 0f);
-                transform.Rotate(direction, 1f);
-                //Vector3 direction = new Vector3(0f, -posDelta * 20 + transform.eulerAngles.y, 0f);
-                //transform.eulerAngles = Vector3.Lerp(transform.eulerAngles, direction, 0.1f);
+
+                Vector3 direction = new Vector3(0f, -(posDelta * 10) + transform.eulerAngles.y, 0f);
+
+                transform.eulerAngles = Vector3.SmoothDamp(transform.eulerAngles,
+                    direction, ref currentVelocity, 0.01f);
 
             }
         }
@@ -67,6 +78,22 @@ public class Player : PlayerController
         {
             isForward = false;
         }
+
+
+        if(isJumpHeight)
+        {
+            transform.position = Vector3.MoveTowards(transform.position, heightTargetPosition, Time.deltaTime * 15f);
+            heigtTime += Time.deltaTime;
+            
+            if(Vector3.Distance(transform.position, heightTargetPosition) < 0.01f)
+            {
+                heigtTime = 0;
+                isJumpHeight = false;
+                rigidbody.useGravity = true;
+            }
+
+        }
+
     }
 
 
@@ -76,12 +103,31 @@ public class Player : PlayerController
 
         if(collision.gameObject.tag == "target")
         {
+            if (target == null)
+                return;
+
+            if(target.targetType == Target.TargetType.OneTime)
+            {
+                rigidbody.useGravity = false;
+
+                currPosition = transform.position;
+
+                heightTargetPosition = new Vector3(transform.position.x, jumpForceHeight, transform.position.z);
+                isJumpHeight = true;
+
+                animator.SetTrigger("jump");
+            }
+            else
+            {
+                JumpOnTarget();
+            }
+
             if(target.Neighbor != null)
             {
                 targetRotate = target.Neighbor.transform.position - transform.position;
                 lookRotation = Quaternion.LookRotation(targetRotate);
             }
-            
+
         }
        
 
@@ -96,8 +142,6 @@ public class Player : PlayerController
         }
 
     }
-
-    
 
 
 

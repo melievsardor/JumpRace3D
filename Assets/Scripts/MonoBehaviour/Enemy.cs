@@ -19,9 +19,12 @@ public class Enemy : PlayerController
 
         if (collision.gameObject.tag == "target")
         {
-            target = collision.transform.parent.GetComponent<Target>().Neighbor;
+            if (target == null)
+                return;
 
-            if (target != null)
+            JumpOnTarget();
+
+            if (target.Neighbor != null)
             {
                 StartCoroutine(LookAt(target.transform));
             }

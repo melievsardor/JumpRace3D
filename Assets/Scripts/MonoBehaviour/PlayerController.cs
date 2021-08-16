@@ -14,11 +14,8 @@ public class PlayerController : MonoBehaviour, IGameState
     [SerializeField]
     protected float forwardSpeed = 2f;
 
-
     protected Rigidbody rigidbody;
     protected Animator animator;
-
-    protected float jumpForceHeight;
 
     protected bool isPlay;
     protected bool isFinish;
@@ -46,13 +43,10 @@ public class PlayerController : MonoBehaviour, IGameState
         rigidbody = GetComponent<Rigidbody>();
 
         animator = GetComponent<Animator>();
-
-        jumpForceHeight = transform.position.y;
     }
 
     private void OnCollisionEnter(Collision collision)
     {
-        
         CollisionEnter(collision);
     }
 
@@ -61,40 +55,23 @@ public class PlayerController : MonoBehaviour, IGameState
     {
         if (collision.gameObject.tag == "target")
         {
-            JumpOnTarget(collision);
+            target = collision.transform.parent.GetComponent<Target>();
         }
     }
 
-    private void JumpOnTarget(Collision collision)
+    protected void JumpOnTarget()
     {
-        target = collision.transform.parent.GetComponent<Target>();
+        index = target.Index;
 
-        if (target != null)
-        {
-            var neighbor = target.Neighbor;
+        rigidbody.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
 
-            if (target.targetType == Target.TargetType.OneTime)
-            {
-                rigidbody.AddForce(Vector3.up * jumpForceHeight, ForceMode.Impulse);
-                target.transform.DOScale(Vector3.zero, 2f);
-                isLookAt = false;
-            }
-            else
-            {
-                index = target.Index;
+        animator.SetTrigger("jump");
 
-                rigidbody.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
-            }
-
-            animator.SetTrigger("jump");
-
-            isLookAt = true;
-        }
+        isLookAt = true;
     }
 
     protected IEnumerator LookAt(Transform target)
     {
-
         var temp = target.position - transform.position;
         Quaternion lookRotation = Quaternion.LookRotation(temp);
 
