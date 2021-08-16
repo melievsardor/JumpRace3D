@@ -77,6 +77,7 @@ public class PlayerController : MonoBehaviour, IGameState
             {
                 rigidbody.AddForce(Vector3.up * jumpForceHeight, ForceMode.Impulse);
                 target.transform.DOScale(Vector3.zero, 2f);
+                isLookAt = false;
             }
             else
             {
