@@ -46,19 +46,21 @@ public class Player : PlayerController
         {
             isForward = true;
 
-            posX = Input.mousePosition.x;
+            posX = Camera.main.ScreenToViewportPoint(Input.mousePosition).x;
         }
         else if(Input.GetMouseButton(0))
         {
-            float deltaX = posX - Input.mousePosition.x;
-
             if (isForward)
             {
                 isLookAt = false;
+                float posDelta = posX - Camera.main.ScreenToViewportPoint(Input.mousePosition).x;
 
                 transform.Translate(Vector3.forward * Time.deltaTime * forwardSpeed);
+                Vector3 direction = new Vector3(0f, -posDelta, 0f);
+                transform.Rotate(direction, 1f);
+                //Vector3 direction = new Vector3(0f, -posDelta * 20 + transform.eulerAngles.y, 0f);
+                //transform.eulerAngles = Vector3.Lerp(transform.eulerAngles, direction, 0.1f);
 
-                transform.Rotate(new Vector3(0f, -deltaX / 10 * Time.deltaTime, 0f));
             }
         }
         else if(Input.GetMouseButtonUp(0))
@@ -74,8 +76,12 @@ public class Player : PlayerController
 
         if(collision.gameObject.tag == "target")
         {
-            targetRotate = target.Neighbor.transform.position - transform.position;
-            lookRotation = Quaternion.LookRotation(targetRotate);
+            if(target.Neighbor != null)
+            {
+                targetRotate = target.Neighbor.transform.position - transform.position;
+                lookRotation = Quaternion.LookRotation(targetRotate);
+            }
+            
         }
        
 
