@@ -32,7 +32,7 @@ public class Player : PlayerController
     private Vector3 currPosition;
         
     private Vector3 heightTargetPosition;
-    private const float jumpForceHeight = 33;
+    private const float jumpForceHeight = 50;
 
     private float posX;
 
@@ -115,8 +115,10 @@ public class Player : PlayerController
 
         }
 
-        if(!isRayBlock)
-            DotHelper();
+        DotHelper();
+
+        lineRenderer.SetPosition(0, startTransform.position);
+        lineRenderer.SetPosition(1, dotTransform.localPosition);
     }
 
 
@@ -136,29 +138,10 @@ public class Player : PlayerController
             {
                 material.color = notargetColor;
             }
-
-            if (!isRayBlock)
-            {
-                lineRenderer.SetPosition(0, startTransform.position);
-                lineRenderer.SetPosition(1, dotTransform.localPosition);
-            }
-            else
-            {
-                lineRenderer.SetPosition(0, Vector3.zero);
-                lineRenderer.SetPosition(1, Vector3.zero);
-            }
            
-
             dotTransform.position = new Vector3(startTransform.position.x, hit.point.y,
            startTransform.position.z);
 
-            
-
-        }
-        else
-        {
-            lineRenderer.SetPosition(0, Vector3.zero);
-            lineRenderer.SetPosition(1, Vector3.zero);
         }
 
     }
@@ -166,8 +149,6 @@ public class Player : PlayerController
     protected override void CollisionEnter(Collision collision)
     {
         base.CollisionEnter(collision);
-
-        isRayBlock = true;
 
         if(collision.gameObject.tag == "target")
         {
@@ -209,11 +190,6 @@ public class Player : PlayerController
             GameManager.Instance.SetFinish();
         }
 
-    }
-
-    private void OnCollisionExit(Collision collision)
-    {
-        isRayBlock = false;
     }
 
 

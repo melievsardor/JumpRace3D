@@ -27,6 +27,4 @@ public class Target : MonoBehaviour
         this.index = index;
     }
 
-
-
 }
