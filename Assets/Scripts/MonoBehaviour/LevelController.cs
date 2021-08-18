@@ -37,7 +37,7 @@ public class LevelController : MonoBehaviour
 
         CreateTargets();
 
-        CreateOnWaterTarget();
+       // CreateOnWaterTarget();
     }
 
     
@@ -94,15 +94,19 @@ public class LevelController : MonoBehaviour
             target = Instantiate(targetPrefab);
             targets.Add(target);
 
-            float angle = i * (2 * PI / 10);
+
+            float angle = i * ( PI / 10);
+
+            Debug.Log(i + " = " + angle);
+
+            
 
             float x = Mathf.Cos(angle) * PositionRadius;
 
             float z = Mathf.Sin(angle) * PositionRadius;
 
-           
-            //if (i != 0 && i % random != 0)
-            //    z = 5f;
+            if (i % 5 != 0)
+                x = 10;
 
             targetPosition = new Vector3(targetPosition.x + x, targetPosition.y + yOffset, targetPosition.z + z);
 

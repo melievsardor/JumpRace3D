@@ -5,6 +5,24 @@ using UnityEngine;
 
 public class Player : PlayerController
 {
+    [SerializeField]
+    private Material material;
+
+    [SerializeField]
+    private Color targetColor;
+
+    [SerializeField]
+    private Color notargetColor;
+
+    [SerializeField]
+    private Transform startTransform;
+
+    [SerializeField]
+    private Transform dotTransform;
+
+    [SerializeField]
+    private LineRenderer lineRenderer;
+
     private Quaternion lookRotation;
 
     private Vector3 targetRotate;
@@ -23,12 +41,15 @@ public class Player : PlayerController
 
     private bool isForward;
     private bool isJumpHeight;
+    private bool isRayBlock;
 
     protected override void Start()
     {
         base.Start();
 
         GameManager.Instance.AddPlayer(this);
+
+        
 
         isPlayer = true;
     }
@@ -40,12 +61,13 @@ public class Player : PlayerController
             transform.rotation = Quaternion.Slerp(transform.rotation, lookRotation, time);
             transform.eulerAngles = new Vector3(0f, transform.eulerAngles.y, 0f);
             time += Time.deltaTime * lookAtSpeed;
-
+          
             if (time >= 1)
             {
                 isLookAt = false;
                 time = 0;
             }
+
         }
 
         if (!isPlay || isFinish)
@@ -71,7 +93,6 @@ public class Player : PlayerController
 
                 transform.eulerAngles = Vector3.SmoothDamp(transform.eulerAngles,
                     direction, ref currentVelocity, 0.01f);
-
             }
         }
         else if(Input.GetMouseButtonUp(0))
@@ -94,12 +115,59 @@ public class Player : PlayerController
 
         }
 
+        if(!isRayBlock)
+            DotHelper();
     }
 
+
+    private void DotHelper()
+    {
+        var ray = new Ray(this.transform.position, new Vector3(0f, -1f, 0f));
+
+        RaycastHit hit;
+
+        if (Physics.Raycast(ray, out hit))
+        {
+            if (hit.transform.tag == "target")
+            {
+                material.color = targetColor;
+            }
+            else
+            {
+                material.color = notargetColor;
+            }
+
+            if (!isRayBlock)
+            {
+                lineRenderer.SetPosition(0, startTransform.position);
+                lineRenderer.SetPosition(1, dotTransform.localPosition);
+            }
+            else
+            {
+                lineRenderer.SetPosition(0, Vector3.zero);
+                lineRenderer.SetPosition(1, Vector3.zero);
+            }
+           
+
+            dotTransform.position = new Vector3(startTransform.position.x, hit.point.y,
+           startTransform.position.z);
+
+            
+
+        }
+        else
+        {
+            lineRenderer.SetPosition(0, Vector3.zero);
+            lineRenderer.SetPosition(1, Vector3.zero);
+        }
+
+    }
 
     protected override void CollisionEnter(Collision collision)
     {
         base.CollisionEnter(collision);
+
+        isRayBlock = true;
 
         if(collision.gameObject.tag == "target")
         {
@@ -143,6 +211,10 @@ public class Player : PlayerController
 
     }
 
+    private void OnCollisionExit(Collision collision)
+    {
+        isRayBlock = false;
+    }
 
 
 }
