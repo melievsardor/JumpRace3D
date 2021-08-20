@@ -30,7 +30,7 @@ public class Player : PlayerController
     private Vector3 currentVelocity;
     private Vector3 heightVelocity;
     private Vector3 currPosition;
-        
+
     private Vector3 heightTargetPosition;
     private const float jumpForceHeight = 50;
 
@@ -41,7 +41,6 @@ public class Player : PlayerController
 
     private bool isForward;
     private bool isJumpHeight;
-    private bool isRayBlock;
 
     protected override void Start()
     {
@@ -49,19 +48,17 @@ public class Player : PlayerController
 
         GameManager.Instance.AddPlayer(this);
 
-        
-
         isPlayer = true;
     }
 
-    private void Update()
+    private void FixedUpdate()
     {
         if (isLookAt)
         {
             transform.rotation = Quaternion.Slerp(transform.rotation, lookRotation, time);
             transform.eulerAngles = new Vector3(0f, transform.eulerAngles.y, 0f);
             time += Time.deltaTime * lookAtSpeed;
-          
+
             if (time >= 1)
             {
                 isLookAt = false;
@@ -70,24 +67,44 @@ public class Player : PlayerController
 
         }
 
+        if (isJumpHeight)
+        {
+            Vector3 f = heightTargetPosition - transform.position;
+
+            f = f.normalized;
+
+            f = f * 20;
+
+            rigidbody.AddForce(f);
+
+            heigtTime += Time.deltaTime * 5f;
+
+            if (heigtTime > 20f)
+            {
+                heigtTime = 0;
+                isJumpHeight = false;
+            }
+
+        }
+
         if (!isPlay || isFinish)
             return;
 
-        if(Input.GetMouseButtonDown(0))
+        if (Input.GetMouseButtonDown(0))
         {
             isForward = true;
             isLookAt = false;
 
             posX = Camera.main.ScreenToViewportPoint(Input.mousePosition).x;
         }
-        else if(Input.GetMouseButton(0))
+        else if (Input.GetMouseButton(0))
         {
             if (isForward)
             {
                 isLookAt = false;
                 float posDelta = posX - Camera.main.ScreenToViewportPoint(Input.mousePosition).x;
 
-                transform.Translate(Vector3.forward * Time.deltaTime * forwardSpeed);
+                transform.Translate(Vector3.forward * Time.deltaTime * forwardSpeed, Space.Self);
 
                 Vector3 direction = new Vector3(0f, -(posDelta * 10) + transform.eulerAngles.y, 0f);
 
@@ -95,24 +112,9 @@ public class Player : PlayerController
                     direction, ref currentVelocity, 0.01f);
             }
         }
-        else if(Input.GetMouseButtonUp(0))
+        else if (Input.GetMouseButtonUp(0))
         {
             isForward = false;
-        }
-
-
-        if(isJumpHeight)
-        {
-            transform.position = Vector3.MoveTowards(transform.position, heightTargetPosition, Time.deltaTime * 15f);
-            heigtTime += Time.deltaTime;
-            
-            if(Vector3.Distance(transform.position, heightTargetPosition) < 0.01f)
-            {
-                heigtTime = 0;
-                isJumpHeight = false;
-                rigidbody.useGravity = true;
-            }
-
         }
 
         DotHelper();
@@ -138,7 +140,7 @@ public class Player : PlayerController
             {
                 material.color = notargetColor;
             }
-           
+
             dotTransform.position = new Vector3(startTransform.position.x, hit.point.y,
            startTransform.position.z);
 
@@ -150,15 +152,13 @@ public class Player : PlayerController
     {
         base.CollisionEnter(collision);
 
-        if(collision.gameObject.tag == "target")
+        if (collision.gameObject.tag == "target")
         {
             if (target == null)
                 return;
 
-            if(target.targetType == Target.TargetType.OneTime)
+            if (target.targetType == Target.TargetType.OneTime)
             {
-                rigidbody.useGravity = false;
-
                 currPosition = transform.position;
 
                 heightTargetPosition = new Vector3(transform.position.x, jumpForceHeight, transform.position.z);
@@ -171,26 +171,28 @@ public class Player : PlayerController
                 JumpOnTarget();
             }
 
-            if(target.Neighbor != null)
+            if (target.Neighbor != null)
             {
                 targetRotate = target.Neighbor.transform.position - transform.position;
                 lookRotation = Quaternion.LookRotation(targetRotate);
             }
 
         }
-       
+
 
         if (collision.gameObject.tag == "water")
         {
             GameManager.Instance.SetFailed();
         }
 
-        if(collision.gameObject.tag == "Finish")
+        if (collision.gameObject.tag == "Finish")
         {
             GameManager.Instance.SetFinish();
         }
 
     }
+
+
 
 
 }
